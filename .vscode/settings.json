@@ -1,0 +1,6 @@
+{
+  "ruby.format": "standard",
+  "ruby.lint": {
+    "standard": true
+  }
+}

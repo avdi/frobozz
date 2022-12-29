@@ -15,7 +15,15 @@
 	// "postCreateCommand": "ruby --version",
 
 	// Configure tool-specific properties.
-	// "customizations": {},
+	,"customizations": {
+		"vscode": {
+			"extensions": [
+				"rebornix.ruby",
+				"kaiwood.endwise",
+				"castwide.solargraph"
+			]
+		}
+	},
 
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"
