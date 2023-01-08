@@ -1,2 +1,2 @@
 #!/bin/bash
-RUBYOPT="-r ./lib/ruby_shims_for_rerun" bundle exec rerun rackup
+bundle exec rerun rackup
