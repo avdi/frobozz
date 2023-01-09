@@ -3,12 +3,14 @@ GEM
   specs:
     ast (2.4.2)
     backport (1.2.0)
+    bcrypt (3.1.18)
     benchmark (0.2.1)
     diff-lcs (1.5.0)
     e2mmap (0.1.0)
     ffi (1.15.5)
     jaro_winkler (1.5.4)
     json (2.6.3)
+    jwt (2.6.0)
     kramdown (2.4.0)
       rexml
     kramdown-parser-gfm (1.1.0)
@@ -41,6 +43,11 @@ GEM
     rexml (3.2.5)
     roda (3.63.0)
       rack
+    rodauth (2.26.1)
+      roda (>= 2.6.0)
+      sequel (>= 4)
+    rodauth-oauth (1.0.0)
+      rodauth (~> 2.0)
     rubocop (1.40.0)
       json (~> 2.3)
       parallel (~> 1.10)
@@ -57,6 +64,7 @@ GEM
       rubocop (>= 1.7.0, < 2.0)
       rubocop-ast (>= 0.4.0)
     ruby-progressbar (1.11.0)
+    sequel (5.64.0)
     solargraph (0.48.0)
       backport (~> 1.2)
       benchmark
@@ -72,6 +80,8 @@ GEM
       thor (~> 1.0)
       tilt (~> 2.0)
       yard (~> 0.9, >= 0.9.24)
+    sqlite3 (1.5.4)
+      mini_portile2 (~> 2.8.0)
     standard (1.20.0)
       language_server-protocol (~> 3.17.0.2)
       rubocop (= 1.40.0)
@@ -89,10 +99,15 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  bcrypt (~> 3.1)
+  jwt (~> 2.6)
   rackup (~> 0.2.3)
   rerun (~> 0.14.0)
   roda (~> 3.63)
+  rodauth (~> 2.26)
+  rodauth-oauth (~> 1.0)
   solargraph (~> 0.48.0)
+  sqlite3 (~> 1.5)
   standardrb (~> 1.0)
 
 BUNDLED WITH
