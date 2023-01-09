@@ -1,0 +1,3 @@
+postgresql:
+  configuration:
+    version: 15.1
