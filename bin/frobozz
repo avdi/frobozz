@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require "optparse"
-require "readline"
+require "io/console"
 
 options = {}
 parser = OptionParser.new do |parser|
@@ -20,7 +20,7 @@ when "login"
   usage_message = "Usage: #{$0} login <your login>"
   login = ARGV.shift or abort usage_message
   puts "Enter your password:"
-  password = ::Readline.readline("> ") or abort "No password given"
+  password = $stdin.getpass("Password: ") or abort "No password given"
 else
   puts "I don't know how to #{command}"
   abort
