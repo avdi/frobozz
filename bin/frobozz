@@ -4,6 +4,8 @@ require "optparse"
 require "io/console"
 require "oauth2"
 require "webrick"
+require "stringio"
+require "pkce_challenge"
 
 options = {}
 parser = OptionParser.new do |parser|
@@ -19,14 +21,19 @@ command = ARGV.shift
 
 case command
 when "login"
-  client = OAuth2::Client.new("frobozz-client", "frobozz-client", site: "http://localhost:4040/")
-  auth_url = client.auth_code.authorize_url(redirect_uri: "http://127.0.0.1:9876")
+  client = OAuth2::Client.new("frobozz-client", "frobozz-client", site: "http://localhost:5555/")
+  challenge = PkceChallenge.challenge
+  auth_url = client.auth_code.authorize_url(
+    redirect_uri: "http://127.0.0.1:9876",
+    code_challenge: challenge.code_challenge,
+    code_challenge_method: "S256"
+  )
   puts "Please visit: #{auth_url}"
   puts "Waiting for confirmation..."
-  logger = Logger: WEBrick::Log.new(String.new) # hush
+  logger = WEBrick::Log.new(StringIO.new) # shush
   redirect_server = WEBrick::HTTPServer.new(Port: 9876, Logger: logger)
   redirect_server.mount_proc "/" do |req, res|
-    p req
+    p req.body
     redirect_server.shutdown
   end
   redirect_server.start
