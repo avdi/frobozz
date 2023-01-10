@@ -5,7 +5,7 @@ require "io/console"
 require "oauth2"
 require "webrick"
 require "stringio"
-require "pkce_challenge"
+require "pkce_challenge" # why is this not part of oauth2 gem 🤔
 
 options = {}
 parser = OptionParser.new do |parser|
@@ -21,22 +21,28 @@ command = ARGV.shift
 
 case command
 when "login"
-  client = OAuth2::Client.new("frobozz-client", "frobozz-client", site: "http://localhost:5555/")
+  client = OAuth2::Client.new("frobozz-client", "frobozz-client", site: "http://localhost:4000/")
   challenge = PkceChallenge.challenge
+  logger = WEBrick::Log.new(StringIO.new) # shush
+  redirect_server = WEBrick::HTTPServer.new(Port: 0, Logger: logger)
+  loopback_uri = "http://127.0.0.1:#{redirect_server.config[:Port]}"
   auth_url = client.auth_code.authorize_url(
-    redirect_uri: "http://127.0.0.1:9876",
+    redirect_uri: loopback_uri,
     code_challenge: challenge.code_challenge,
     code_challenge_method: "S256"
   )
   puts "Please visit: #{auth_url}"
   puts "Waiting for confirmation..."
-  logger = WEBrick::Log.new(StringIO.new) # shush
-  redirect_server = WEBrick::HTTPServer.new(Port: 9876, Logger: logger)
+  auth_code = nil
   redirect_server.mount_proc "/" do |req, res|
-    p req.body
+    auth_code = req.query
+    res.content_type = "text/plain"
+    res.body = "Success! You can close this window now."
     redirect_server.shutdown
   end
   redirect_server.start
+  access = client.auth_code.get_token(auth_code, {code_verifier: challenge.code_verifier, redirect_uri: loopback_uri})
+  p access
 else
   puts "I don't know how to #{command}"
   abort
