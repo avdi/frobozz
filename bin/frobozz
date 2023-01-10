@@ -2,6 +2,8 @@
 
 require "optparse"
 require "io/console"
+require "oauth2"
+require "webrick"
 
 options = {}
 parser = OptionParser.new do |parser|
@@ -17,10 +19,17 @@ command = ARGV.shift
 
 case command
 when "login"
-  usage_message = "Usage: #{$0} login <your login>"
-  login = ARGV.shift or abort usage_message
-  puts "Enter your password:"
-  password = $stdin.getpass("Password: ") or abort "No password given"
+  client = OAuth2::Client.new("frobozz-client", "frobozz-client", site: "http://localhost:4040/")
+  auth_url = client.auth_code.authorize_url(redirect_uri: "http://127.0.0.1:9876")
+  puts "Please visit: #{auth_url}"
+  puts "Waiting for confirmation..."
+  logger = Logger: WEBrick::Log.new(String.new) # hush
+  redirect_server = WEBrick::HTTPServer.new(Port: 9876, Logger: logger)
+  redirect_server.mount_proc "/" do |req, res|
+    p req
+    redirect_server.shutdown
+  end
+  redirect_server.start
 else
   puts "I don't know how to #{command}"
   abort
