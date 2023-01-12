@@ -16,19 +16,20 @@ options = {
   client_id: "frobozz-client"
 }
 parser = OptionParser.new do |parser|
-  parser.banner = "Usage: #{$0} <command> [options]"
-  parser.on "-h", "--help", "Get help" do
+  parser.banner = "Usage: #{parser.program_name} <command> [options]"
+  parser.on_tail "-h", "--help", "Get help" do
     puts parser
     exit
   end
-  parser.on "-sSITE", "--site=SITE", "--server", "Specify site to connect", URI do |site|
-    options[:site] = site.freeze
-  end
-  parser.on "--client-id=CLIENT_ID", "Override client ID", String do |client_id|
-    options[:client_id] = client_id.freeze
-  end
+  parser.on "-sSITE", "--site=SITE", "--server", "Specify site to connect", URI
+  parser.on "--client-id=CLIENT_ID", "Override client ID", String
 end
-parser.parse!
+parser.order! into: options do |arg|
+  puts "Nonopt: #{arg}"
+  parser.terminate(arg)
+end
+p ARGV
+exit
 
 command = ARGV.shift
 
