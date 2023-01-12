@@ -7,7 +7,9 @@ require "webrick"
 require "stringio"
 require "uri"
 require "net/http"
-require "pkce_challenge" # why is this not part of oauth2 gem 🤔
+require "securerandom"
+require "digest"
+require "base64"
 
 options = {
   site: URI("https://frobozz.social").freeze,
@@ -36,24 +38,32 @@ when "login"
   redirect_server = WEBrick::HTTPServer.new(Port: 0, Logger: server_logger)
   loopback_uri = "http://127.0.0.1:#{redirect_server.config[:Port]}"
 
-  challenge = PkceChallenge.challenge
+  pkce_legal_characters = [*("A".."Z"), *("a".."z"), *("0".."9"), "-", ".", "_", "~"].freeze
+  # Note that Array#sample(n, ...)  tries to sample *unique* indices, so it is
+  # not suitable here.
+  pkce_verifier = Array.new(64) { pkce_legal_characters.sample(random: SecureRandom) }.join
+  pkce_challenge = Base64.urlsafe_encode64(Digest::SHA256.digest(pkce_verifier), padding: false)
 
   authorize_params = {}
-  authorize_params["response_type"] = "code"
-  authorize_params["client_id"] = options[:client_id]
-  authorize_params["redirect_uri"] = loopback_uri
-  authorize_params["scope"] = "profile.read profile.write realm.read realm.write"
-  authorize_params["code_challenge"] = challenge.code_challenge
+  # standard:disable Layout
+  authorize_params["response_type"]         = "code"
+  authorize_params["client_id"]             = options[:client_id]
+  authorize_params["redirect_uri"]          = loopback_uri
+  authorize_params["scope"]                 = "profile.read profile.write realm.read realm.write"
+  authorize_params["code_challenge"]        = pkce_challenge
   authorize_params["code_challenge_method"] = "S256"
+  # standard: enable Layout
+
   authorize_url = URI(options[:site]).dup
   authorize_url.path = "/oauth/authorize"
   authorize_url.query = URI.encode_www_form(authorize_params)
+
   puts "Please visit: #{authorize_url}"
   puts "Waiting for confirmation..."
   auth_code = nil
   redirect_server.mount_proc "/" do |req, res|
     if (error_code = req.query["error"])
-      puts "Authorization error: #{error}"
+      puts "Authorization error: #{error_code}"
       if (error_desc = req.query["error_description"])
         puts error_desc
       end
@@ -73,16 +83,17 @@ when "login"
 
   token_url = URI(options[:site]).merge("/oauth/token")
   token_params = {}
-  token_params["grant_type"] = "authorization_code"
-  token_params["code"] = auth_code
-  token_params["redirect_uri"] = loopback_uri
-  token_params["client_id"] = options[:client_id]
-  token_params["code_verifier"] = challenge.code_verifier
-  p token_body = URI.encode_www_form(token_params)
-  token_headers = {
-    "Content-Type" => "application/x-www-form-urlencoded",
-    "Accept" => "application/json"
-  }
+  # standard:disable Layout
+  token_params["grant_type"]    = "authorization_code"
+  token_params["code"]          = auth_code
+  token_params["redirect_uri"]  = loopback_uri
+  token_params["client_id"]     = options[:client_id]
+  token_params["code_verifier"] = pkce_verifier
+  # standard: enable Layout
+  token_body = URI.encode_www_form(token_params)
+  token_headers = {}
+  token_headers["Content-Type"] = "application/x-www-form-urlencoded"
+  token_headers["Accept"] = "application/json"
   token_response = Net::HTTP.post(token_url, token_body, token_headers)
   pp token_response
   pp token_response.body
