@@ -87,10 +87,10 @@ app_secret = BCrypt::Password.create("frobozz-client", cost: BCrypt::Engine::MIN
 DB[:oauth_applications].insert name: "frobozz-client",
   description: "The official client, such as it is",
   homepage_url: "https://frobozz.social",
-  redirect_uri: "http://127.0.0.1:9876",
+  redirect_uri: "http://127.0.0.1",
   client_id: "frobozz-client",
   client_secret: app_secret,
-  scopes: "profile.read profile.write"
+  scopes: "profile.read profile.write realm.read realm.write"
 
 module Frobozz
   class App < Roda
@@ -101,9 +101,6 @@ module Frobozz
       oauth_application_scopes %w[profile.read profile.write]
       authorize_route "oauth/authorize"
       token_route "oauth/token"
-      # Native client secrets are assumed to be compromised, so who cares
-      secret_matches? ->(application, secret) { true }
-      oauth_require_pkce true
     end
     plugin :sessions, secret: "TODO_BETTER_SECRET" * 4
     route do |r|

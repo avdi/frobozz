@@ -12,8 +12,9 @@
 	// "features": {},
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	"forwardPorts": [
-		5050
+		4000
 	],
+	// "appPort": 4000,
 	// Use 'postCreateCommand' to run commands after the container is created.
 	"postCreateCommand": "./.devcontainer/post-create.sh",
 	// Configure tool-specific properties.
