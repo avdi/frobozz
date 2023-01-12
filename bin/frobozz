@@ -10,13 +10,15 @@ require "net/http"
 require "securerandom"
 require "digest"
 require "base64"
+require "json"
+require "yaml/store"
+require "pathname"
 
 options = {
   site: URI("https://frobozz.social").freeze,
   client_id: "frobozz-client"
 }
 parser = OptionParser.new do |parser|
-  parser.banner = "Usage: #{$0} <command> [options]"
   parser.on "-h", "--help", "Get help" do
     puts parser
     exit
@@ -28,77 +30,114 @@ parser = OptionParser.new do |parser|
     options[:client_id] = client_id.freeze
   end
 end
-parser.parse!
+parser.order! do |nonopt|
+  parser.terminate(nonopt)
+end
 
 command = ARGV.shift
 
+unless command
+  puts parser
+  exit
+end
+
+data_file_path = Pathname.new(Dir.home) / ".frobozz" / "data.yaml"
+data_file_path.dirname.mkpath
+store = YAML::Store.new(data_file_path)
+
 case command
 when "login"
-  server_logger = WEBrick::Log.new(StringIO.new) # shush
-  redirect_server = WEBrick::HTTPServer.new(Port: 0, Logger: server_logger)
-  loopback_uri = "http://127.0.0.1:#{redirect_server.config[:Port]}"
-
-  pkce_legal_characters = [*("A".."Z"), *("a".."z"), *("0".."9"), *"-._~".chars]
-  # Note that Array#sample(n, ...)  tries to sample *unique* indices, so it is
-  # not suitable here.
-  pkce_verifier = Array.new(64) { pkce_legal_characters.sample(random: SecureRandom) }.join
-  pkce_challenge = Base64.urlsafe_encode64(Digest::SHA256.digest(pkce_verifier), padding: false)
-
-  authorize_params = {}
-  # standard:disable Layout
-  authorize_params["response_type"]         = "code"
-  authorize_params["client_id"]             = options[:client_id]
-  authorize_params["redirect_uri"]          = loopback_uri
-  authorize_params["scope"]                 = "profile.read profile.write realm.read realm.write"
-  authorize_params["code_challenge"]        = pkce_challenge
-  authorize_params["code_challenge_method"] = "S256"
-  # standard: enable Layout
-
-  authorize_url = URI(options[:site]).dup
-  authorize_url.path = "/oauth/authorize"
-  authorize_url.query = URI.encode_www_form(authorize_params)
-
-  puts "Please visit: #{authorize_url}"
-  puts "Waiting for confirmation..."
-  auth_code = nil
-  redirect_server.mount_proc "/" do |req, res|
-    if (error_code = req.query["error"])
-      puts "Authorization error: #{error_code}"
-      if (error_desc = req.query["error_description"])
-        puts error_desc
+  store.transaction do
+    access_token = nil
+    parser = OptionParser.new do |parser|
+      parser.program_name = "#{parser.program_name} login"
+      parser.on "--token TOKEN", "Provide auth token acquired out-of-band", String do |token|
+        access_token = token # TODO: do somethign with this
       end
-      if (error_uri = req.query["error_uri"])
-        puts "More info: #{error_uri}"
+      parser.on "--force", "Flush current auth token and force re-auth" do
+        store.delete(:current_access_token)
       end
-      res.content_type = "text/plain"
-      res.body = "Failed. You can close this window now."
-    else
-      auth_code = req.query["code"]
-      res.content_type = "text/plain"
-      res.body = "Success! You can close this window now."
+      parser.on_tail "-n", "--help", "Get help" do
+        puts parser
+        exit
+      end
     end
-    redirect_server.shutdown
-  end
-  redirect_server.start
+    if store[:current_access_token]
+      puts "Already logged in. (Use --force to flush token and re-authorize)"
+      exit
+    end
+    parser.parse!
+    server_logger = WEBrick::Log.new(StringIO.new) # shush
+    redirect_server = WEBrick::HTTPServer.new(Port: 0, Logger: server_logger)
+    loopback_uri = "http://127.0.0.1:#{redirect_server.config[:Port]}"
 
-  token_url = URI(options[:site]).merge("/oauth/token")
-  token_params = {}
-  # standard:disable Layout
-  token_params["grant_type"]    = "authorization_code"
-  token_params["code"]          = auth_code
-  token_params["redirect_uri"]  = loopback_uri
-  token_params["client_id"]     = options[:client_id]
-  token_params["code_verifier"] = pkce_verifier
-  # standard: enable Layout
-  token_body = URI.encode_www_form(token_params)
-  token_headers = {}
-  token_headers["Content-Type"] = "application/x-www-form-urlencoded"
-  token_headers["Accept"] = "application/json"
-  token_response = Net::HTTP.post(token_url, token_body, token_headers)
-  pp token_response
-  pp token_response.body
-  #   #<Net::HTTPOK 200 OK readbody=true>
-  # "{\"access_token\":\"6b2_aW_vRHK-wdGkCPwIMyP6AmmngVQyncOKAV2tbv8\",\"token_type\":\"bearer\",\"expires_in\":3600,\"refresh_token\":\"J0ZfUNkl6OY5RcvzfEo_NnVfOOEYeuvWoanoZPqkJPI\"}"
+    pkce_legal_characters = [*("A".."Z"), *("a".."z"), *("0".."9"), *"-._~".chars]
+    # Note that Array#sample(n, ...)  tries to sample *unique* indices, so it is
+    # not suitable here.
+    pkce_verifier = Array.new(64) { pkce_legal_characters.sample(random: SecureRandom) }.join
+    pkce_challenge = Base64.urlsafe_encode64(Digest::SHA256.digest(pkce_verifier), padding: false)
+
+    authorize_params = {}
+    # standard:disable Layout
+    authorize_params["response_type"]         = "code"
+    authorize_params["client_id"]             = options[:client_id]
+    authorize_params["redirect_uri"]          = loopback_uri
+    authorize_params["scope"]                 = "profile.read profile.write realm.read realm.write"
+    authorize_params["code_challenge"]        = pkce_challenge
+    authorize_params["code_challenge_method"] = "S256"
+    # standard: enable Layout
+
+    authorize_url = URI(options[:site]).dup
+    authorize_url.path = "/oauth/authorize"
+    authorize_url.query = URI.encode_www_form(authorize_params)
+
+    puts "Please visit: #{authorize_url}"
+    puts "Waiting for confirmation..."
+    auth_code = nil
+    redirect_server.mount_proc "/" do |req, res|
+      if (error_code = req.query["error"])
+        puts "Authorization error: #{error_code}"
+        if (error_desc = req.query["error_description"])
+          puts error_desc
+        end
+        if (error_uri = req.query["error_uri"])
+          puts "More info: #{error_uri}"
+        end
+        res.content_type = "text/plain"
+        res.body = "Failed. You can close this window now."
+      else
+        auth_code = req.query["code"]
+        res.content_type = "text/plain"
+        res.body = "Success! You can close this window now."
+      end
+      redirect_server.shutdown
+    end
+    redirect_server.start
+
+    token_url = URI(options[:site]).merge("/oauth/token")
+    token_params = {}
+    # standard:disable Layout
+    token_params["grant_type"]    = "authorization_code"
+    token_params["code"]          = auth_code
+    token_params["redirect_uri"]  = loopback_uri
+    token_params["client_id"]     = options[:client_id]
+    token_params["code_verifier"] = pkce_verifier
+    # standard: enable Layout
+    token_body = URI.encode_www_form(token_params)
+    token_headers = {}
+    token_headers["Content-Type"] = "application/x-www-form-urlencoded"
+    token_headers["Accept"] = "application/json"
+    token_response = Net::HTTP.post(token_url, token_body, token_headers)
+    abort "#{token_response.code} #{token_response.msg}" unless token_response.is_a?(Net::HTTPOK)
+    content_type = token_response["content-type"]
+    abort "Wrong response type: #{content_type}" unless content_type.match?(%r{^application/json})
+    token_response_data = JSON.parse(token_response.body)
+    #   #<Net::HTTPOK 200 OK readbody=true>
+    # "{\"access_token\":\"6b2_aW_vRHK-wdGkCPwIMyP6AmmngVQyncOKAV2tbv8\",\"token_type\":\"bearer\",\"expires_in\":3600,\"refresh_token\":\"J0ZfUNkl6OY5RcvzfEo_NnVfOOEYeuvWoanoZPqkJPI\"}"
+    store[:token_response_data] = token_response_data
+    store[:token_response_data][:updated_at] = Time.now
+    store[:current_access_token] = token_response_data["access_token"]
+  end
 else
   puts "I don't know how to #{command}"
   abort
