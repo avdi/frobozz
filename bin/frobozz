@@ -48,11 +48,12 @@ store = YAML::Store.new(data_file_path)
 case command
 when "login"
   store.transaction do
-    access_token = nil
     parser = OptionParser.new do |parser|
       parser.program_name = "#{parser.program_name} login"
       parser.on "--token TOKEN", "Provide auth token acquired out-of-band", String do |token|
-        access_token = token # TODO: do somethign with this
+        store[:current_access_token] = token
+        puts "Access token updated"
+        store.commit # this also bails out
       end
       parser.on "--force", "Flush current auth token and force re-auth" do
         store.delete(:current_access_token)
@@ -62,11 +63,11 @@ when "login"
         exit
       end
     end
+    parser.parse!
     if store[:current_access_token]
       puts "Already logged in. (Use --force to flush token and re-authorize)"
       exit
     end
-    parser.parse!
     server_logger = WEBrick::Log.new(StringIO.new) # shush
     redirect_server = WEBrick::HTTPServer.new(Port: 0, Logger: server_logger)
     loopback_uri = "http://127.0.0.1:#{redirect_server.config[:Port]}"
