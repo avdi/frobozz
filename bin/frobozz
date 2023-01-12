@@ -38,7 +38,7 @@ when "login"
   redirect_server = WEBrick::HTTPServer.new(Port: 0, Logger: server_logger)
   loopback_uri = "http://127.0.0.1:#{redirect_server.config[:Port]}"
 
-  pkce_legal_characters = [*("A".."Z"), *("a".."z"), *("0".."9"), "-", ".", "_", "~"].freeze
+  pkce_legal_characters = [*("A".."Z"), *("a".."z"), *("0".."9"), *"-._~".chars]
   # Note that Array#sample(n, ...)  tries to sample *unique* indices, so it is
   # not suitable here.
   pkce_verifier = Array.new(64) { pkce_legal_characters.sample(random: SecureRandom) }.join
