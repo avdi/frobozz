@@ -133,8 +133,6 @@ when "login"
     content_type = token_response["content-type"]
     abort "Wrong response type: #{content_type}" unless content_type.match?(%r{^application/json})
     token_response_data = JSON.parse(token_response.body)
-    #   #<Net::HTTPOK 200 OK readbody=true>
-    # "{\"access_token\":\"6b2_aW_vRHK-wdGkCPwIMyP6AmmngVQyncOKAV2tbv8\",\"token_type\":\"bearer\",\"expires_in\":3600,\"refresh_token\":\"J0ZfUNkl6OY5RcvzfEo_NnVfOOEYeuvWoanoZPqkJPI\"}"
     store[:token_response_data] = token_response_data
     store[:token_response_data][:updated_at] = Time.now
     store[:current_access_token] = token_response_data["access_token"]
