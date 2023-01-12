@@ -1,9 +1,11 @@
 {
   "ruby.lint": {
-    "standard": false
+    "ruby": true,
+    "standard": true
   },
   "ruby.format": "standard",
   "[ruby]": {
     "editor.formatOnSave": true
-  }
+  },
+  "ruby.useBundler": true,
 }
