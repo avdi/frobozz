@@ -106,7 +106,6 @@ module Frobozz
     route do |r|
       r.rodauth
       r.on "hello" do
-        p
         "Hello, world. The time is now #{Time.now}"
       end
 
