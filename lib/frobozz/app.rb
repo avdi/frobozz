@@ -7,6 +7,8 @@ require "jwt"
 case ENV["ENVIRONMENT"].downcase
 when "development"
   DB = Sequel.sqlite
+when "production"
+  DB = Sequel.connect(ENV.fetch("DATABASE_URL"))
 else
   raise "An ENVIRONMENT of #{ENV["ENVIRONMENT"]} is not [yet] supported"
 end

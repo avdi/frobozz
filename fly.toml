@@ -11,7 +11,7 @@ processes = []
 
 [env]
   PORT = "8080"
-  ENVIRONMENT = "development"
+  ENVIRONMENT = "production"
 
 [experimental]
   auto_rollback = true
