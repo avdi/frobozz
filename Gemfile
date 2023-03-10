@@ -14,7 +14,7 @@ gem "roda", "~> 3.63"
 
 gem "rodauth", "~> 2.26"
 
-gem "rodauth-oauth", git: "https://gitlab.com/avdigrimm/rodauth-oauth.git", branch: "ephemeral-port-in-native-client-loopback-redirect-uri"
+gem "rodauth-oauth", "~> 1.0"
 
 gem "bcrypt", "~> 3.1"
 
