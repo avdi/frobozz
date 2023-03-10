@@ -1,11 +1,3 @@
-GIT
-  remote: https://gitlab.com/avdigrimm/rodauth-oauth.git
-  revision: 8389d222a2b27a8ec35dad1ea0eeb1eb18fd42ea
-  branch: ephemeral-port-in-native-client-loopback-redirect-uri
-  specs:
-    rodauth-oauth (1.0.0)
-      rodauth (~> 2.0)
-
 GEM
   remote: https://rubygems.org/
   specs:
@@ -54,6 +46,8 @@ GEM
     rodauth (2.26.1)
       roda (>= 2.6.0)
       sequel (>= 4)
+    rodauth-oauth (1.0.0)
+      rodauth (~> 2.0)
     rubocop (1.40.0)
       json (~> 2.3)
       parallel (~> 1.10)
@@ -111,7 +105,7 @@ DEPENDENCIES
   rerun (~> 0.14.0)
   roda (~> 3.63)
   rodauth (~> 2.26)
-  rodauth-oauth!
+  rodauth-oauth (~> 1.0)
   solargraph (~> 0.48.0)
   sqlite3 (~> 1.5)
   standardrb (~> 1.0)
