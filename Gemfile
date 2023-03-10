@@ -21,3 +21,5 @@ gem "bcrypt", "~> 3.1"
 
 gem "jwt", "~> 2.6"
 
+
+gem "pg", "~> 1.4", :group => :production
