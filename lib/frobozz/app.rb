@@ -13,12 +13,12 @@ else
   raise "An ENVIRONMENT of #{ENV["ENVIRONMENT"]} is not [yet] supported"
 end
 
-DB.create_table :account_statuses do
+DB.create_table! :account_statuses do
   Integer :id, primary_key: true
   String :name, null: false, unique: true
 end
 DB.from(:account_statuses).import([:id, :name], [[1, "Unverified"], [2, "Verified"], [3, "Closed"]])
-DB.create_table :accounts do
+DB.create_table! :accounts do
   primary_key :id, type: :Bignum
   foreign_key :status_id, :account_statuses, null: false, default: 1
   if DB.database_type == :postgresql
@@ -35,7 +35,7 @@ DB.create_table :accounts do
 
   String :password_hash
 end
-DB.create_table(:oauth_applications) do
+DB.create_table!(:oauth_applications) do
   primary_key :id, type: Integer
   foreign_key :account_id, :accounts, null: true
   String :name, null: false
@@ -59,7 +59,7 @@ DB.create_table(:oauth_applications) do
   String :software_id, null: true
   String :software_version, null: true
 end
-DB.create_table :oauth_grants do |_t|
+DB.create_table! :oauth_grants do |_t|
   primary_key :id, type: Integer
   foreign_key :account_id, :accounts, null: false
   foreign_key :oauth_application_id, :oauth_applications, null: false
