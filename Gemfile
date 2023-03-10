@@ -23,3 +23,7 @@ gem "jwt", "~> 2.6"
 
 
 gem "pg", "~> 1.4", :group => :production
+
+gem "tilt", "~> 2.0"
+
+gem "mail", "~> 2.8"
