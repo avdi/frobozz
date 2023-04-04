@@ -1,2 +1,2 @@
 #!/bin/bash
-exec irb -r ./lib/frobozz/app
+exec irb -r bundler/setup -r awesome_print -r ./lib/frobozz/app 

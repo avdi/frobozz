@@ -3,8 +3,9 @@ require "roda"
 require "rodauth"
 require "rodauth/oauth"
 require "jwt"
+require "bcrypt"
 
-case ENV["ENVIRONMENT"].downcase
+case ENV["ENVIRONMENT"].to_s.downcase
 when "development"
   DB = Sequel.sqlite
 when "production"
