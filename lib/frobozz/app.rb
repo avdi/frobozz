@@ -8,19 +8,21 @@ require "bcrypt"
 case ENV["ENVIRONMENT"].to_s.downcase
 when "development"
   DB = Sequel.sqlite
+  DB_DROP_OPTS = {}
 when "production"
   DB = Sequel.connect(ENV.fetch("DATABASE_URL"))
+  DB_DROP_OPTS = {cascade: true}
 else
   raise "An ENVIRONMENT of #{ENV["ENVIRONMENT"]} is not [yet] supported"
 end
 
-DB.drop_table? :account_statuses, cascade: true
+DB.drop_table? :account_statuses, **DB_DROP_OPTS
 DB.create_table! :account_statuses do
   Integer :id, primary_key: true
   String :name, null: false, unique: true
 end
 DB.from(:account_statuses).import([:id, :name], [[1, "Unverified"], [2, "Verified"], [3, "Closed"]])
-DB.drop_table? :accounts, cascade: true
+DB.drop_table? :accounts, **DB_DROP_OPTS
 DB.create_table! :accounts do
   primary_key :id, type: :Bignum
   foreign_key :status_id, :account_statuses, null: false, default: 1
@@ -38,7 +40,7 @@ DB.create_table! :accounts do
 
   String :password_hash
 end
-DB.drop_table? :oauth_applications, cascade: true
+DB.drop_table? :oauth_applications, **DB_DROP_OPTS
 DB.create_table!(:oauth_applications) do
   primary_key :id, type: Integer
   foreign_key :account_id, :accounts, null: true
@@ -63,7 +65,7 @@ DB.create_table!(:oauth_applications) do
   String :software_id, null: true
   String :software_version, null: true
 end
-DB.drop_table? :oauth_grants, cascade: true
+DB.drop_table? :oauth_grants, **DB_DROP_OPTS
 DB.create_table! :oauth_grants do |_t|
   primary_key :id, type: Integer
   foreign_key :account_id, :accounts, null: false

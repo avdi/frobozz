@@ -9,6 +9,8 @@ group :development do
   gem "sqlite3", "~> 1.5"
   gem "awesome_print", "~> 1.9"    
   gem "faker", "~> 3.1"
+  gem "rack-test", "~> 2.1"
+  gem "minitest", "~> 5.18"
 end
 
 gem "rackup", "~> 0.2.3"
@@ -29,3 +31,4 @@ gem "pg", "~> 1.4", :group => :production
 gem "tilt", "~> 2.0"
 
 gem "mail", "~> 2.8"
+gem "rake", "~> 13.0"
