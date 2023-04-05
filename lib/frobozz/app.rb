@@ -4,6 +4,7 @@ require "rodauth"
 require "rodauth/oauth"
 require "jwt"
 require "bcrypt"
+require "json"
 
 case ENV["ENVIRONMENT"].to_s.downcase
 when "development"
@@ -101,6 +102,7 @@ DB[:oauth_applications].insert name: "frobozz-client",
   client_secret: app_secret,
   scopes: "profile.read profile.write realm.read realm.write"
 
+$temporary_global_room_list = []
 module Frobozz
   class App < Roda
     plugin :rodauth, json: true do
@@ -121,10 +123,12 @@ module Frobozz
       r.on "rooms" do
         r.is do
           r.get do
+            JSON.generate($temporary_global_room_list)
           end
 
           r.post do
-            "GOT IT"
+            new_room = JSON.parse(request.body.read)
+            $temporary_global_room_list << new_room
           end
         end
       end

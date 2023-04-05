@@ -12,6 +12,8 @@ group :development do
   gem "rack-test", "~> 2.1"
   gem "minitest", "~> 5.18"
   gem "dotenv", "~> 2.8"
+  gem "minitest-rg", "~> 5.2"
+  gem "debug", "~> 1.7"  
 end
 
 gem "rackup", "~> 0.2.3"
@@ -33,4 +35,6 @@ gem "tilt", "~> 2.0"
 
 gem "mail", "~> 2.8"
 gem "rake", "~> 13.0"
+
+
 
