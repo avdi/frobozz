@@ -29,6 +29,12 @@ parser = OptionParser.new do |parser|
   parser.on "--client-id=CLIENT_ID", "Override client ID", String do |client_id|
     options[:client_id] = client_id.freeze
   end
+  parser.banner << " <command> ..."
+  parser.separator ""
+  parser.separator <<~EOF
+    Available commands: 
+    \tlogin
+  EOF
 end
 parser.order! do |nonopt|
   parser.terminate(nonopt)
