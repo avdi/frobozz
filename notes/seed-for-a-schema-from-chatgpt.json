@@ -1,0 +1,46 @@
+{
+  "@context": {
+    "@vocab": "http://example.com/adventure-game/",
+    "name": "http://schema.org/name",
+    "description": "http://schema.org/description",
+    "items": {
+      "@container": "@list",
+      "@id": "http://example.com/adventure-game/items"
+    },
+    "exits": {
+      "@container": "@list",
+      "@id": "http://example.com/adventure-game/exits"
+    }
+  },
+  "@type": "Room",
+  "name": "Mysterious Cave",
+  "description": "You find yourself in a dark, damp cave with a musty smell. A faint light flickers in the distance.",
+  "items": [
+    {
+      "@type": "Item",
+      "name": "Torch",
+      "description": "A wooden torch with a cloth soaked in oil wrapped around its end."
+    },
+    {
+      "@type": "Item",
+      "name": "Rusty Key",
+      "description": "An old, rusty key that seems to have been forgotten here."
+    }
+  ],
+  "exits": [
+    {
+      "@type": "Exit",
+      "direction": "north",
+      "destination": "http://example.com/adventure-game/rooms/forest-path",
+      "description": "A narrow path leads north, out of the cave and into a forest."
+    },
+    {
+      "@type": "Exit",
+      "direction": "east",
+      "destination": "http://example.com/adventure-game/rooms/hidden-chamber",
+      "description": "A hidden door on the eastern wall opens up to reveal a small chamber.",
+      "locked": true,
+      "key": "http://example.com/adventure-game/items/rusty-key"
+    }
+  ]
+}
