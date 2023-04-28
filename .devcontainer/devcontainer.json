@@ -23,7 +23,8 @@
 			"extensions": [
 				"rebornix.ruby",
 				"kaiwood.endwise",
-				"castwide.solargraph"
+				"castwide.solargraph",
+				"connorshea.vscode-ruby-test-adapter"
 			]
 		}
 	}
